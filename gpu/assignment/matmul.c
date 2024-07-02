@@ -59,18 +59,20 @@ int main(int argc, char** argv)
   B = (mat_t*) malloc(bnx * bny * sizeof(mat_t));
   C = (mat_t*) calloc(cnx * cny, sizeof(mat_t));
 
-  if (rank == 0) {
-    initialize_matrix(A, anx, any, INIT_MODE_SEQUENTIAL, 0);
-    initialize_matrix(B, bnx, bny, INIT_MODE_SEQUENTIAL, 0);
-  }
+  // if (rank == 0) {
+  //   initialize_matrix(A, anx, any, INIT_MODE_SEQUENTIAL, 0);
+  //   initialize_matrix(B, bnx, bny, INIT_MODE_SEQUENTIAL, 0);
+  // }
 
-  MPI_Bcast(A, anx * any, mat_mpi_t, 0, MPI_COMM_WORLD);
-  MPI_Bcast(B, anx * any, mat_mpi_t, 0, MPI_COMM_WORLD);
+  // MPI_Bcast(A, anx * any, mat_mpi_t, 0, MPI_COMM_WORLD);
+  // MPI_Bcast(B, anx * any, mat_mpi_t, 0, MPI_COMM_WORLD);
+
+  initialize_matrix(A, anx, any, INIT_MODE_SEQUENTIAL, 0);
+  initialize_matrix(B, bnx, bny, INIT_MODE_SEQUENTIAL, 0);
 
   int rpr = cnx / size;
   int lo = cnx % size;
   if (mode == MATMUL_MODE_NAIVE) {
-    
     for (int ci = 0; ci < rpr + (rank < lo ? 1 : 0); ci++) {
       for (int cj = 0; cj < cny; cj++) {
         #ifdef DEBUG
@@ -82,12 +84,6 @@ int main(int argc, char** argv)
       }
     }
   } else if (mode == MATMUL_MODE_BLAS) {
-    // mat_t* BT = malloc(bnx * bny * sizeof(mat_t));
-    // for (int i = 0; i < bnx; i++) {
-    //   for (int j = 0; j < bny; j++) {
-    //     BT[i * bnx + j] = B[j * bnx + i];
-    //   }
-    // }
     cblas_dgemm(
       CblasRowMajor,
       CblasNoTrans,
@@ -105,7 +101,7 @@ int main(int argc, char** argv)
       cny
     );
   } else if (mode == MATMUL_MODE_CUDA) {
-
+    
   }
 
   int* recvcounts = (int*) malloc(sizeof(int) * size);
